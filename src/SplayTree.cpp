@@ -1,6 +1,7 @@
 #include "SplayTree.h"
 
 #include <algorithm>
+
 void SplayTree::print(const std::string & prefix, const Node * node, bool isLeft) const
 {
     if (node != nullptr) {
@@ -22,6 +23,7 @@ bool SplayTree::empty() const
 
 bool SplayTree::contains(int value) const
 {
+    // std::cout << "contains: " << const_cast<SplayTree *>(this)->con++ << std::endl;
     Node * node = root;
     while (node != nullptr) {
         if (node->key == value) {
@@ -99,15 +101,18 @@ bool SplayTree::remove(int value)
             if (root == node) {
                 delete node;
                 this->root = nullptr;
+                sizeTree--;
                 return true;
             }
             node->parent->left == node ? node->parent->left = nullptr : node->parent->right = nullptr;
             delete node;
+            sizeTree--;
             return true;
         }
         splay(node);
         merge(node->left, node->right);
         delete node;
+        sizeTree--;
         return true;
     }
     else
@@ -141,9 +146,9 @@ std::vector<int> SplayTree::values() const
 
 std::size_t SplayTree::size() const
 {
-    std::size_t count = 0;
-    traverse(root, count);
-    return count;
+    // std::size_t count = 0;
+    // traverse(root, count);
+    return sizeTree;
 }
 
 void SplayTree::rotate(Node * node)
@@ -233,6 +238,7 @@ bool SplayTree::insert(int value)
 {
     if (root == nullptr) {
         root = new Node(value);
+        sizeTree++;
         return true;
     }
     Node * node = root;
@@ -243,6 +249,7 @@ bool SplayTree::insert(int value)
                 node->right = ptr_new_node;
                 ptr_new_node->parent = node;
                 splay(ptr_new_node);
+                sizeTree++;
                 return true;
             }
             node = node->right;
@@ -253,6 +260,7 @@ bool SplayTree::insert(int value)
                 node->left = ptr_new_node;
                 ptr_new_node->parent = node;
                 splay(ptr_new_node);
+                sizeTree++;
                 return true;
             }
             node = node->left;

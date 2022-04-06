@@ -24,6 +24,7 @@ struct Node
 class SplayTree
 {
     Node * root = nullptr;
+    std::size_t sizeTree = 0;
 
 public:
     inline Node * getRoot() const
