@@ -36,7 +36,7 @@ public:
     bool find(int value, Node * node, Node *& ptr_value) const;
     bool insert(int value);
     void merge(Node * tree1, Node * tree2);
-    void traverse(Node * begin, std::size_t & count) const;
+    void deleteTree(Node * begin);
     void traverse(Node * begin, std::vector<int> & values) const;
     bool contains(int value) const;
     bool remove(int value);
@@ -49,13 +49,16 @@ public:
         print("", root, false);
     }
     SplayTree() = default;
-    SplayTree(Node * _root)
-        : root(_root)
+    SplayTree(Node * node)
+        : root(node)
+    {
+    }
+    SplayTree(int value)
+        : root(new Node(value))
     {
     }
     ~SplayTree()
     {
-        delete root;
-        root = nullptr;
+        deleteTree(root);
     }
 };

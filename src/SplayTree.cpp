@@ -23,7 +23,6 @@ bool SplayTree::empty() const
 
 bool SplayTree::contains(int value) const
 {
-    // std::cout << "contains: " << const_cast<SplayTree *>(this)->con++ << std::endl;
     Node * node = root;
     while (node != nullptr) {
         if (node->key == value) {
@@ -119,12 +118,12 @@ bool SplayTree::remove(int value)
         return false;
 }
 
-void SplayTree::traverse(Node * begin, std::size_t & count) const
+void SplayTree::deleteTree(Node * node)
 {
-    if (begin) {
-        count++;
-        traverse(begin->left, count);
-        traverse(begin->right, count);
+    if (node) {
+        deleteTree(node->left);
+        deleteTree(node->right);
+        delete node;
     }
 }
 
@@ -146,8 +145,6 @@ std::vector<int> SplayTree::values() const
 
 std::size_t SplayTree::size() const
 {
-    // std::size_t count = 0;
-    // traverse(root, count);
     return sizeTree;
 }
 
@@ -268,6 +265,7 @@ bool SplayTree::insert(int value)
         }
         if (node->key == value) {
             // std::cerr << "Value is already there!" << std::endl;
+            delete ptr_new_node;
             return false;
         }
     }
