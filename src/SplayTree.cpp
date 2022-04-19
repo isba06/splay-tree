@@ -1,6 +1,37 @@
 #include "SplayTree.h"
 
 #include <algorithm>
+#include <iostream>
+
+struct SplayTree::Node
+{
+    int key;
+    Node * parent = nullptr;
+    Node * left = nullptr;
+    Node * right = nullptr;
+
+    Node() = default;
+    Node(int value)
+        : key(value)
+    {
+    }
+    ~Node()
+    {
+        parent = nullptr;
+        left = nullptr;
+        right = nullptr;
+    }
+};
+
+SplayTree::SplayTree(Node * node)
+    : root(node)
+{
+}
+
+SplayTree::SplayTree(int value)
+    : root(new Node(value))
+{
+}
 
 void SplayTree::print(const std::string & prefix, const Node * node, bool isLeft) const
 {
@@ -13,6 +44,11 @@ void SplayTree::print(const std::string & prefix, const Node * node, bool isLeft
     }
 }
 
+void SplayTree::print() const
+{
+    print("", root, false);
+}
+
 bool SplayTree::empty() const
 {
     if (root == nullptr)
@@ -23,21 +59,10 @@ bool SplayTree::empty() const
 
 bool SplayTree::contains(int value) const
 {
-    Node * node = root;
-    while (node != nullptr) {
-        if (node->key == value) {
-            const_cast<SplayTree *>(this)->splay(node);
-            return true;
-        }
-        if (node->key < value) {
-            node = node->right;
-            continue;
-        }
-        if (node->key > value) {
-            node = node->left;
-            continue;
-        }
-        return false;
+    Node * node;
+    if (find(value, root, node)) {
+        const_cast<SplayTree *>(this)->splay(node);
+        return true;
     }
     return false;
 }
@@ -66,7 +91,7 @@ bool SplayTree::find(int value, Node * node, Node *& ptr_value) const
     return false;
 }
 
-Node * search_large_element(Node * node)
+SplayTree::Node * search_large_element(SplayTree::Node * node)
 {
     while (node && node->right) {
         node = node->right;
@@ -130,16 +155,17 @@ void SplayTree::deleteTree(Node * node)
 void SplayTree::traverse(Node * begin, std::vector<int> & values) const
 {
     if (begin) {
-        values.emplace_back(begin->key);
         traverse(begin->left, values);
+        values.emplace_back(begin->key);
         traverse(begin->right, values);
     }
 }
+
 std::vector<int> SplayTree::values() const
 {
     std::vector<int> val;
+    val.reserve(sizeTree);
     traverse(root, val);
-    std::sort(val.begin(), val.end());
     return val;
 }
 
@@ -190,7 +216,7 @@ void SplayTree::rotate(Node * node)
     }
 }
 
-bool isZigZig(Node * node)
+bool isZigZig(SplayTree::Node * node)
 {
     if (node->parent != nullptr) {
         if (node->parent->parent->left != nullptr && node == node->parent->parent->left->left)
@@ -201,7 +227,7 @@ bool isZigZig(Node * node)
     return false;
 }
 
-bool isZigZag(Node * node)
+bool isZigZag(SplayTree::Node * node)
 {
     if (node->parent != nullptr) {
         if (node->parent->parent->left != nullptr && node == node->parent->parent->left->right)
@@ -264,7 +290,6 @@ bool SplayTree::insert(int value)
             continue;
         }
         if (node->key == value) {
-            // std::cerr << "Value is already there!" << std::endl;
             delete ptr_new_node;
             return false;
         }
