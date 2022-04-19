@@ -59,7 +59,7 @@ bool SplayTree::empty() const
 
 bool SplayTree::contains(int value) const
 {
-    Node * node;
+    Node * node = root;
     if (find(value, root, node)) {
         const_cast<SplayTree *>(this)->splay(node);
         return true;
@@ -69,24 +69,26 @@ bool SplayTree::contains(int value) const
 
 bool SplayTree::find(int value, Node * node, Node *& ptr_value) const
 {
-    if (node != nullptr) {
+    if (node == nullptr) {
+        return false;
+    }
+    while (true) {
         if (node->key == value) {
             ptr_value = node;
             return true;
         }
         if (node->key < value) {
             if (node->right != nullptr)
-                return find(value, node->right, ptr_value);
+                node = node->right;
             else
                 return false;
         }
         if (node->key > value) {
             if (node->left != nullptr)
-                return find(value, node->left, ptr_value);
+                node = node->left;
             else
                 return false;
         }
-        return false;
     }
     return false;
 }
