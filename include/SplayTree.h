@@ -19,19 +19,16 @@ public:
     SplayTree() = default;
     SplayTree(Node * node);
     SplayTree(int value);
-    ~SplayTree()
-    {
-        deleteTree(root);
-    }
+    ~SplayTree();
 
 private:
     Node * root = nullptr;
     std::size_t sizeTree = 0;
 
     bool splay(Node * node);
+    bool splay(int value);
     void rotate(Node * node);
-    bool find(int value, Node * node, Node *& ptr_value) const;
+    bool find_lower_bound(int value, Node * node, Node *& ptr_value) const;
     void merge(Node * tree1, Node * tree2);
-    void deleteTree(Node * begin);
     void traverse(Node * begin, std::vector<int> & values) const;
 };

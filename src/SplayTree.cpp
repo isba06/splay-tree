@@ -18,8 +18,8 @@ struct SplayTree::Node
     ~Node()
     {
         parent = nullptr;
-        left = nullptr;
-        right = nullptr;
+        delete left;
+        delete right;
     }
 };
 
@@ -31,6 +31,10 @@ SplayTree::SplayTree(Node * node)
 SplayTree::SplayTree(int value)
     : root(new Node(value))
 {
+}
+SplayTree::~SplayTree()
+{
+    delete root;
 }
 
 void SplayTree::print(const std::string & prefix, const Node * node, bool isLeft) const
@@ -59,15 +63,10 @@ bool SplayTree::empty() const
 
 bool SplayTree::contains(int value) const
 {
-    Node * node = root;
-    if (find(value, root, node)) {
-        const_cast<SplayTree *>(this)->splay(node);
-        return true;
-    }
-    return false;
+    return const_cast<SplayTree *>(this)->splay(value);
 }
 
-bool SplayTree::find(int value, Node * node, Node *& ptr_value) const
+bool SplayTree::find_lower_bound(int value, Node * node, Node *& ptr_value) const
 {
     if (node == nullptr) {
         return false;
@@ -80,17 +79,20 @@ bool SplayTree::find(int value, Node * node, Node *& ptr_value) const
         if (node->key < value) {
             if (node->right != nullptr)
                 node = node->right;
-            else
+            else {
+                ptr_value = node;
                 return false;
+            }
         }
         if (node->key > value) {
             if (node->left != nullptr)
                 node = node->left;
-            else
+            else {
+                ptr_value = node;
                 return false;
+            }
         }
     }
-    return false;
 }
 
 SplayTree::Node * search_large_element(SplayTree::Node * node)
@@ -122,7 +124,7 @@ void SplayTree::merge(Node * tree_left, Node * tree_right)
 bool SplayTree::remove(int value)
 {
     Node * node;
-    if (find(value, root, node)) {
+    if (find_lower_bound(value, root, node)) {
         if (node->left == nullptr && node->right == nullptr) {
             if (root == node) {
                 delete node;
@@ -131,27 +133,22 @@ bool SplayTree::remove(int value)
                 return true;
             }
             node->parent->left == node ? node->parent->left = nullptr : node->parent->right = nullptr;
+            node->left = nullptr;
+            node->right = nullptr;
             delete node;
             sizeTree--;
             return true;
         }
         splay(node);
         merge(node->left, node->right);
+        node->left = nullptr;
+        node->right = nullptr;
         delete node;
         sizeTree--;
         return true;
     }
     else
         return false;
-}
-
-void SplayTree::deleteTree(Node * node)
-{
-    if (node) {
-        deleteTree(node->left);
-        deleteTree(node->right);
-        delete node;
-    }
 }
 
 void SplayTree::traverse(Node * begin, std::vector<int> & values) const
@@ -259,6 +256,16 @@ bool SplayTree::splay(Node * node)
     return false;
 }
 
+bool SplayTree::splay(int value)
+{
+    Node * node;
+    if (find_lower_bound(value, root, node)) {
+        splay(node);
+        return true;
+    }
+    return false;
+}
+
 bool SplayTree::insert(int value)
 {
     if (root == nullptr) {
@@ -266,34 +273,23 @@ bool SplayTree::insert(int value)
         sizeTree++;
         return true;
     }
-    Node * node = root;
-    Node * ptr_new_node = new Node(value);
-    while (true) {
+    Node * node;
+    if (!find_lower_bound(value, root, node)) {
+        Node * ptr_new_node = new Node(value);
         if (node->key < value) {
-            if (node->right == nullptr) {
-                node->right = ptr_new_node;
-                ptr_new_node->parent = node;
-                splay(ptr_new_node);
-                sizeTree++;
-                return true;
-            }
-            node = node->right;
-            continue;
+            node->right = ptr_new_node;
+            ptr_new_node->parent = node;
+            splay(ptr_new_node);
+            sizeTree++;
+            return true;
         }
-        if (node->key > value) {
-            if (node->left == nullptr) {
-                node->left = ptr_new_node;
-                ptr_new_node->parent = node;
-                splay(ptr_new_node);
-                sizeTree++;
-                return true;
-            }
-            node = node->left;
-            continue;
-        }
-        if (node->key == value) {
-            delete ptr_new_node;
-            return false;
+        else {
+            node->left = ptr_new_node;
+            ptr_new_node->parent = node;
+            splay(ptr_new_node);
+            sizeTree++;
+            return true;
         }
     }
+    return false;
 }
