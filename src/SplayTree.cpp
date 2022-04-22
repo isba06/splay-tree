@@ -23,15 +23,6 @@ struct SplayTree::Node
     }
 };
 
-SplayTree::SplayTree(Node * node)
-    : root(node)
-{
-}
-
-SplayTree::SplayTree(int value)
-    : root(new Node(value))
-{
-}
 SplayTree::~SplayTree()
 {
     delete root;
@@ -55,10 +46,7 @@ void SplayTree::print() const
 
 bool SplayTree::empty() const
 {
-    if (root == nullptr)
-        return true;
-    else
-        return false;
+    return root == nullptr;
 }
 
 bool SplayTree::contains(int value) const
@@ -95,7 +83,7 @@ bool SplayTree::find_lower_bound(int value, Node * node, Node *& ptr_value) cons
     }
 }
 
-SplayTree::Node * search_large_element(SplayTree::Node * node)
+SplayTree::Node * SplayTree::search_large_element(SplayTree::Node * node)
 {
     while (node && node->right) {
         node = node->right;
@@ -111,44 +99,46 @@ void SplayTree::merge(Node * tree_left, Node * tree_right)
         this->root->parent = nullptr;
         return;
     }
-    else if (tree_left->right == nullptr)
+    if (tree_left->right == nullptr) {
         new_root = tree_left;
-    else
+    }
+    else {
         new_root = search_large_element(tree_left);
+    }
     splay(new_root);
     new_root->right = tree_right;
-    if (tree_right)
+    if (tree_right) {
         tree_right->parent = new_root;
+    }
 }
 
 bool SplayTree::remove(int value)
 {
     Node * node;
-    if (find_lower_bound(value, root, node)) {
-        if (node->left == nullptr && node->right == nullptr) {
-            if (root == node) {
-                delete node;
-                this->root = nullptr;
-                sizeTree--;
-                return true;
-            }
-            node->parent->left == node ? node->parent->left = nullptr : node->parent->right = nullptr;
-            node->left = nullptr;
-            node->right = nullptr;
+    if (!find_lower_bound(value, root, node)) {
+        return false;
+    }
+    if (node->left == nullptr && node->right == nullptr) {
+        if (root == node) {
             delete node;
+            this->root = nullptr;
             sizeTree--;
             return true;
         }
-        splay(node);
-        merge(node->left, node->right);
+        (node->parent->left == node ? node->parent->left : node->parent->right) = nullptr;
         node->left = nullptr;
         node->right = nullptr;
         delete node;
         sizeTree--;
         return true;
     }
-    else
-        return false;
+    splay(node);
+    merge(node->left, node->right);
+    node->left = nullptr;
+    node->right = nullptr;
+    delete node;
+    sizeTree--;
+    return true;
 }
 
 void SplayTree::traverse(Node * begin, std::vector<int> & values) const
@@ -179,81 +169,42 @@ void SplayTree::rotate(Node * node)
     Node * gparent = node->parent->parent;
     if (parent->left == node) {
         parent->left = node->right;
-        if (node->right != nullptr)
+        if (node->right != nullptr) {
             node->right->parent = parent;
+        }
         node->right = parent;
-        parent->parent = node;
-        if (parent == root) {
-            node->parent = nullptr;
-            root = node;
-        }
-        else {
-            if (gparent->left == parent)
-                gparent->left = node;
-            else
-                gparent->right = node;
-            node->parent = gparent;
-        }
     }
-    if (parent->right == node) {
+    else {
         parent->right = node->left;
-        if (node->left != nullptr)
+        if (node->left != nullptr) {
             node->left->parent = parent;
+        }
         node->left = parent;
-        parent->parent = node;
-        if (parent == root) {
-            node->parent = nullptr;
-            root = node;
+    }
+    parent->parent = node;
+    if (parent == root) {
+        root = node;
+        root->parent = nullptr;
+    }
+    else {
+        if (gparent->left == parent) {
+            gparent->left = node;
         }
         else {
-            if (gparent->left == parent)
-                gparent->left = node;
-            else
-                gparent->right = node;
-            node->parent = gparent;
+            gparent->right = node;
         }
+        node->parent = gparent;
     }
 }
 
-bool isZigZig(SplayTree::Node * node)
-{
-    if (node->parent != nullptr) {
-        if (node->parent->parent->left != nullptr && node == node->parent->parent->left->left)
-            return true;
-        if (node->parent->parent->right != nullptr && node == node->parent->parent->right->right)
-            return true;
-    }
-    return false;
-}
-
-bool isZigZag(SplayTree::Node * node)
-{
-    if (node->parent != nullptr) {
-        if (node->parent->parent->left != nullptr && node == node->parent->parent->left->right)
-            return true;
-        if (node->parent->parent->right != nullptr && node == node->parent->parent->right->left)
-            return true;
-    }
-    return false;
-}
-
-bool SplayTree::splay(Node * node)
+void SplayTree::splay(Node * node)
 {
     while (node != root) {
-        if (node->parent == root) {
-            rotate(node);
-            return true;
-        }
-        if (node->parent != root && isZigZig(node)) {
+        if (node->parent != root && (node->parent->left == node) == (node->parent->parent->left == node->parent)) {
             rotate(node->parent);
-            rotate(node);
         }
-        if (node->parent != root && isZigZag(node)) {
-            rotate(node);
-            rotate(node);
-        }
+        rotate(node);
     }
-    return false;
 }
 
 bool SplayTree::splay(int value)
@@ -283,13 +234,11 @@ bool SplayTree::insert(int value)
             sizeTree++;
             return true;
         }
-        else {
-            node->left = ptr_new_node;
-            ptr_new_node->parent = node;
-            splay(ptr_new_node);
-            sizeTree++;
-            return true;
-        }
+        node->left = ptr_new_node;
+        ptr_new_node->parent = node;
+        splay(ptr_new_node);
+        sizeTree++;
+        return true;
     }
     return false;
 }
